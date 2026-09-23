@@ -2,8 +2,11 @@ import random
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
+from fastapi import APIRouter
 
 app = FastAPI()
+auth_router = APIRouter()
+todos_router = APIRouter()
 
 class User(BaseModel):
     name: str
@@ -20,7 +23,7 @@ tokens = {}
 tasks = {}
 next_ids = {}
 
-@app.post("/register")
+@auth_router.post("/register")
 def register(user: User):
     if user.email not in users:
         users[user.email] = user
@@ -30,7 +33,7 @@ def register(user: User):
 
     return {"error": "User already registered"}
 
-@app.post("/login")
+@auth_router.post("/login")
 def login(user: User):
     if user.email not in users:
         return {"error": "Email not registered"}
@@ -43,7 +46,7 @@ def login(user: User):
         else:
             return {"error": "Incorrect password"}
 
-@app.post("/todos")
+@todos_router.post("/todos")
 def create_todo(todo: Todo):
     if todo.token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -69,7 +72,7 @@ def create_todo(todo: Todo):
         "description": todo.description
     }
 
-@app.put("/todos/{todo_id}")
+@todos_router.put("/todos/{todo_id}")
 def update_task(todo_id: int, todo: Todo):
     if todo.token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -89,7 +92,7 @@ def update_task(todo_id: int, todo: Todo):
         "description": todo.description
     }
 
-@app.delete("/todos/{todo_id}")
+@todos_router.delete("/todos/{todo_id}")
 def delete_task(todo_id: int, todo: Todo):
     if todo.token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -104,7 +107,7 @@ def delete_task(todo_id: int, todo: Todo):
     del tasks[emails][todo_id]
     return JSONResponse(status_code=204, content=None)
 
-@app.get("/todos")
+@todos_router.get("/todos")
 def download_todos (token: float, page: int = 1, limit: int = 10):
     if token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -129,3 +132,6 @@ def download_todos (token: float, page: int = 1, limit: int = 10):
         "limit": limit,
         "total": len(all_tasks),
     }
+
+app.include_router(auth_router)
+app.include_router(todos_router)
