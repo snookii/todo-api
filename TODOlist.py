@@ -5,8 +5,8 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 
 app = FastAPI()
-auth_router = APIRouter()
-todos_router = APIRouter()
+auth_router = APIRouter(prefix="/auth")
+todos_router = APIRouter(prefix="/todos")
 
 class User(BaseModel):
     name: str
@@ -46,7 +46,7 @@ def login(user: User):
         else:
             return {"error": "Incorrect password"}
 
-@todos_router.post("/todos")
+@todos_router.post("")
 def create_todo(todo: Todo):
     if todo.token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -72,7 +72,7 @@ def create_todo(todo: Todo):
         "description": todo.description
     }
 
-@todos_router.put("/todos/{todo_id}")
+@todos_router.put("/{todo_id}")
 def update_task(todo_id: int, todo: Todo):
     if todo.token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -92,7 +92,7 @@ def update_task(todo_id: int, todo: Todo):
         "description": todo.description
     }
 
-@todos_router.delete("/todos/{todo_id}")
+@todos_router.delete("/{todo_id}")
 def delete_task(todo_id: int, todo: Todo):
     if todo.token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -107,7 +107,7 @@ def delete_task(todo_id: int, todo: Todo):
     del tasks[emails][todo_id]
     return JSONResponse(status_code=204, content=None)
 
-@todos_router.get("/todos")
+@todos_router.get("")
 def download_todos (token: float, page: int = 1, limit: int = 10):
     if token not in tokens:
         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
@@ -130,7 +130,7 @@ def download_todos (token: float, page: int = 1, limit: int = 10):
         "data": all_tasks[start:end],
         "page": page,
         "limit": limit,
-        "total": len(all_tasks),
+        "total": len(all_tasks)
     }
 
 app.include_router(auth_router)
