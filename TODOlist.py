@@ -28,12 +28,12 @@ def register(user: User):
         tokens[token] = user.email
         return {"token": token}
 
-    return {"error": "jest juz zarejestrowany"}
+    return {"error": "User already registered"}
 
 @app.post("/login")
 def login(user: User):
     if user.email not in users:
-        return {"error": "email nie jest zarejestrowany"}
+        return {"error": "Email not registered"}
     else:
         saved_user = users[user.email]
         if saved_user.password == user.password:
@@ -41,7 +41,7 @@ def login(user: User):
             tokens[token] = user.email
             return {"token": token}
         else:
-            return {"error": "błędne hasło"}
+            return {"error": "Incorrect password"}
 
 @app.post("/todos")
 def create_todo(todo: Todo):
@@ -77,9 +77,9 @@ def update_task(todo_id: int, todo: Todo):
     emails = tokens[todo.token]
 
     if emails not in tasks:
-        return JSONResponse(status_code=404, content={"message": "Nie ma tylu zadań"})
+        return JSONResponse(status_code=404, content={"message": "Task not found"})
     if todo_id not in tasks[emails]:
-        return JSONResponse(status_code=404, content={"message": "Nie ma tylu zadań"})
+        return JSONResponse(status_code=404, content={"message": "Task not found"})
 
     tasks[emails][todo_id]["title"] = todo.title
     tasks[emails][todo_id]["description"] = todo.description
@@ -97,9 +97,9 @@ def delete_task(todo_id: int, todo: Todo):
     emails = tokens[todo.token]
 
     if emails not in tasks:
-        return JSONResponse(status_code=404, content={"message": "Nie ma tylu zadań"})
+        return JSONResponse(status_code=404, content={"message": "Task not found"})
     if todo_id not in tasks[emails]:
-        return JSONResponse(status_code=404, content={"message": "Nie ma tylu zadań"})
+        return JSONResponse(status_code=404, content={"message": "Task not found"})
 
     del tasks[emails][todo_id]
     return JSONResponse(status_code=204, content=None)
