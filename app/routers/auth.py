@@ -1,4 +1,4 @@
-import random
+import uuid
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -12,7 +12,7 @@ auth_router = APIRouter(prefix="/auth")
 def register(user: RegisterRequest):
     if user.email not in users:
         users[user.email] = user
-        token = str(random.random())
+        token = str(uuid.uuid4())
         tokens[token] = user.email
         return TokenResponse(token=token)
 
@@ -26,7 +26,7 @@ def login(user: LoginRequest):
     else:
         saved_user = users[user.email]
         if saved_user.password == user.password:
-            token = str(random.random())
+            token = str(uuid.uuid4())
             tokens[token] = user.email
             return TokenResponse(token=token)
         else:
