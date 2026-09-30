@@ -1,13 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TodoCreateRequest(BaseModel):
-    title: str
-    description: str
+    title: str = Field(min_length=1, max_length=100)
+    description: str = Field(min_length=1, max_length=1000)
 
 class TodoUpdateRequest(BaseModel):
-    title: str
-    description: str
+    title: str = Field(min_length=1, max_length=100)
+    description: str = Field(min_length=1, max_length=1000)
 
 class TodoResponse(BaseModel):
     id: int

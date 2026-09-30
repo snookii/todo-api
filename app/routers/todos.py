@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response, Depends, Query
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 
@@ -80,7 +80,10 @@ def delete_task(todo_id: int, authorization: str | None = Depends(api_key_header
 
 
 @todos_router.get("", response_model=TodoListResponse)
-def download_todos(page: int = 1, limit: int = 10, authorization: str | None = Depends(api_key_header)):
+def download_todos(page: int = Query(default=1, ge=1),
+                   limit: int = Query(default=10, ge=1, le=100),
+                   authorization: str | None = Depends(api_key_header)
+                   ):
     if authorization not in tokens:
         return JSONResponse(status_code=401, content={"error": "Unauthorized"})
 
