@@ -16,12 +16,16 @@ todo_service = TodoService()
 @todos_router.post("", response_model=TodoResponse)
 def create_todo(body: TodoCreateRequest, request: Request):
     email = request.state.user
-    return todo_service.create_todo(user_email=email, request=body)
+    return todo_service.create_todo(
+        user_email=email,
+        title=body.title,
+        description=body.description,
+    )
 
 @todos_router.put("/{todo_id}", response_model=TodoResponse)
-def update_task(todo_id: int, body: TodoUpdateRequest, request: Request):
+def update_todo(todo_id: int, body: TodoUpdateRequest, request: Request):
     email = request.state.user
-    todo = todo_service.update_todo(user_email=email, todo_id=todo_id, request=body)
+    todo = todo_service.update_todo(user_email=email, todo_id=todo_id, title=body.title, description=body.description)
 
     if todo is None:
         return JSONResponse(status_code=404, content={"error": "Task not found"})
@@ -46,8 +50,12 @@ def download_todos(request: Request,
     email = request.state.user
     todos, total = todo_service.download_todos(user_email=email, page=page, limit=limit)
 
+    responses = []
+    for todo in todos:
+        responses.append(TodoResponse(id=todo.id, title=todo.title , description=todo.description))
+
     return TodoListResponse(
-        data=todos,
+        data= responses,
         page=page,
         limit=limit,
         total=total

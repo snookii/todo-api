@@ -14,6 +14,11 @@ class TodoResponse(BaseModel):
     title: str
     description: str
 
+class Todo(BaseModel):
+    id: int
+    title: str
+    description: str
+
 class TodoListResponse(BaseModel):
     data: list[TodoResponse]
     page: int
