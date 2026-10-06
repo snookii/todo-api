@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from app.storage import tokens
 
@@ -7,7 +7,7 @@ async def authentication_middleware(request: Request, call_next):
 
     if request.url.path.startswith("/todos"):
         if token not in tokens:
-            return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+            return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"error": "Unauthorized"})
         request.state.user = tokens[token]
 
     response = await call_next(request)

@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Response, Depends, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Response, Depends, Query, Request, HTTPException, status
 from fastapi.security import APIKeyHeader
 from app.models.todo import (
     TodoCreateRequest,
@@ -13,7 +12,7 @@ api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 todos_router = APIRouter(prefix="/todos", dependencies=[Depends(api_key_header)])
 todo_service = TodoService()
 
-@todos_router.post("", response_model=TodoResponse)
+@todos_router.post("", response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
 def create_todo(body: TodoCreateRequest, request: Request):
     email = request.state.user
     return todo_service.create_todo(
@@ -28,19 +27,19 @@ def update_todo(todo_id: int, body: TodoUpdateRequest, request: Request):
     todo = todo_service.update_todo(user_email=email, todo_id=todo_id, title=body.title, description=body.description)
 
     if todo is None:
-        return JSONResponse(status_code=404, content={"error": "Task not found"})
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
     return todo
 
-@todos_router.delete("/{todo_id}")
+@todos_router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_todo(todo_id: int, request: Request):
     email = request.state.user
     deleted = todo_service.delete_todo(user_email=email, todo_id=todo_id)
 
     if not deleted:
-        return JSONResponse(status_code=404, content={"error": "Task not found"})
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
-    return Response(status_code=204)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @todos_router.get("", response_model=TodoListResponse)
 def download_todos(request: Request,

@@ -1,6 +1,5 @@
 import uuid
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, status
 
 from app.models.auth import RegisterRequest, LoginRequest, TokenResponse
 from app.storage import users, tokens
@@ -8,7 +7,7 @@ from app.storage import users, tokens
 auth_router = APIRouter(prefix="/auth")
 
 
-@auth_router.post("/register", response_model=TokenResponse)
+@auth_router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(user: RegisterRequest):
     if user.email not in users:
         users[user.email] = user
@@ -16,13 +15,13 @@ def register(user: RegisterRequest):
         tokens[token] = user.email
         return TokenResponse(token=token)
 
-    return JSONResponse(status_code=409, content={"error": "User already registered"})
+    raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already registered")
 
 
 @auth_router.post("/login", response_model=TokenResponse)
 def login(user: LoginRequest):
     if user.email not in users:
-        return JSONResponse(status_code=401, content={"error": "Email not registered"})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     else:
         saved_user = users[user.email]
         if saved_user.password == user.password:
@@ -30,4 +29,4 @@ def login(user: LoginRequest):
             tokens[token] = user.email
             return TokenResponse(token=token)
         else:
-            return JSONResponse(status_code=401, content={"error": "Incorrect password"})
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
