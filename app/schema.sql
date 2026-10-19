@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS preview (
+id INTEGER PRIMARY KEY,
+label TEXT NOT NULL UNIQUE
+);
+
+
+INSERT OR IGNORE INTO preview (label)
+VALUES ('First example');
