@@ -1,26 +1,22 @@
 from sqlalchemy import Engine, text
 from app.models.todo import Todo
+from sqlalchemy.orm import Session
+from app.persistence.todo_entity import TodoEntity
 
 class TodoRepository:
     def __init__(self, engine: Engine):
         self.engine = engine
 
     def find_one(self, user_email: str, todo_id: int) -> Todo | None:
-        with self.engine.connect() as connection:
-            row = connection.execute(
-                text("""
-                    SELECT id, title, description FROM todos
-                    WHERE user_email = :email AND id = :id
-                """),
-                {"email": user_email, "id": todo_id},
-            ).fetchone()
-        if row is None:
-            return None
-        return Todo(
-            id=row.id,
-            title=row.title,
-            description=row.description,
-        )
+        with Session(self.engine) as session:
+            entity = session.get(TodoEntity, todo_id)
+            if entity is None or entity.user_email != user_email:
+                return None
+            return Todo(
+                id=entity.id,
+                title=entity.title,
+                description=entity.description,
+            )
 
     def create(self, user_email: str, title: str,
                description: str) -> Todo:
