@@ -6,11 +6,14 @@ from app.models.todo import (
     TodoResponse,
     TodoListResponse,
 )
+from app.database import engine
 from app.services.todo_service import TodoService
+from app.repositories.todo_repository import TodoRepository
 
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 todos_router = APIRouter(prefix="/todos", dependencies=[Depends(api_key_header)])
-todo_service = TodoService()
+todo_repository = TodoRepository(engine)
+todo_service = TodoService(todo_repository)
 
 @todos_router.post("", response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
 def create_todo(body: TodoCreateRequest, request: Request):
